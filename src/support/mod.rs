@@ -155,7 +155,7 @@ pub fn load_voxel_chunk(display: &Display)->VertexBufferAny{
     let mut chunk = [[[0;12];12];12];
 
    let mut ra =rand::thread_rng();
-    for i in 0..864{
+    for _i in 0..12{
         chunk[ra.gen_range(0..12)][ra.gen_range(0..12)][ra.gen_range(0..12)] =1;
     }
     //codes 0 = west, 1 = east, 2 = front, 3 = back, 4 = top, 5 = bottom

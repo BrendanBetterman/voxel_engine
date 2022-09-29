@@ -4,7 +4,7 @@ extern crate glium;
 
 #[allow(unused_imports)]
 use glium::{glutin, Surface};
-
+use std::time::Instant;
 mod support;
 struct Block{
     id:u32,
@@ -17,7 +17,7 @@ fn main() {
     let wb = glutin::window::WindowBuilder::new();
     let cb = glutin::ContextBuilder::new().with_depth_buffer(24);
     let display = glium::Display::new(wb, cb, &event_loop).unwrap();
-
+    
     // building the vertex and index buffers
     //let vertex_buffer = support::load_wavefront(&display, include_bytes!("support/teapot.obj"));
     let vertex_buffer2 = support::load_voxel_chunk(&display);
@@ -135,11 +135,17 @@ fn main() {
 
     //
     let mut camera = support::camera::CameraState::new();
-
+    let mut now = Instant::now();
+    let mut frame = 0;
     // the main loop
     support::start_loop(event_loop, move |events| {
         camera.update();
-
+        frame +=1;
+        if frame >=10{
+            println!("{}FPS",1.0/(now.elapsed().as_secs_f64()/10.0));
+            frame = 0;
+            now = Instant::now();
+        }
         // building the uniforms
         let uniforms = uniform! {
             persp_matrix: camera.get_perspective(),
@@ -164,13 +170,10 @@ fn main() {
         // drawing a frame
         let mut target = display.draw();
         target.clear_color_and_depth((0.0, 0.0, 0.0, 0.0), 1.0);
-        //target.draw(&vertex_buffer,
-             //       &glium::index::NoIndices(glium::index::PrimitiveType::TrianglesList),
-               //     &program, &uniforms, &params).unwrap();
+        target.draw(&vertex_buffer2,
+            &glium::index::NoIndices(glium::index::PrimitiveType::TrianglesList),
+            &program, &uniforms, &params).unwrap();
 
-                    target.draw(&vertex_buffer2,
-                        &glium::index::NoIndices(glium::index::PrimitiveType::TrianglesList),
-                        &program, &uniforms, &params).unwrap();
         target.finish().unwrap();
 
         let mut action = support::Action::Continue;
