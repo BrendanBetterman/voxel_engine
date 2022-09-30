@@ -38,7 +38,7 @@ pub fn start_loop<F>(event_loop: EventLoop<()>, mut callback: F)->! where F: 'st
 
         let action = if run_callback {
             let action = callback(&events_buffer);
-            next_frame_time = Instant::now() + Duration::from_nanos(16666667);
+            next_frame_time = Instant::now() + Duration::from_nanos(0);//16666667
             // TODO: Add back the old accumulator loop in some way
 
             events_buffer.clear();
@@ -63,101 +63,79 @@ pub fn start_loop<F>(event_loop: EventLoop<()>, mut callback: F)->! where F: 'st
     }
 fn side(side:u8,offset:[f32;3], vert:&mut Vec<Vertex>){
     let mut norm:[f32;3] = [1.0,1.0,1.0];
-    let text:[f32;2] = [1.0,1.0];
+    
     let scale = 10.0;
     //have texture map be 1 or 0 and plus and multiple each for the differnt faces.
+    let mut face=[[0.0 as f32;3];4];
+    let mut texturemap = [[1.0 as f32;2];4];
+    let order = [0,1,2,0,2,3];
     if side ==0{
         norm = [-1.0,0.0,0.0];
-        let face = [
+        texturemap = [[0.5,0.5],[1.0,0.5],[1.0,1.0],[0.5,1.0]];
+        face = [
             [(offset[0])*scale,(offset[1])*scale,(offset[2])*scale],
             [(offset[0])*scale,(offset[1]-1.0)*scale,(offset[2])*scale],
             [(offset[0])*scale,(offset[1]-1.0)*scale,(offset[2]-1.0)*scale],
             [(offset[0])*scale,(offset[1])*scale,(offset[2]-1.0)*scale]];
-        let order = [0,1,2,0,2,3];
-        for i in order{
-            let point = [face[i][0],face[i][1],face[i][2]];
-            vert.push(Vertex{position: point,normal:norm,texture:text,});
-        }
     }else
     if side ==1{
         norm = [1.0,0.0,0.0];
-        let face = [
+        texturemap = [[0.5,0.5],[1.0,0.5],[1.0,1.0],[0.5,1.0]];
+        face = [
             [(offset[0]+1.0)*scale,(offset[1])*scale,(offset[2])*scale],
             [(offset[0]+1.0)*scale,(offset[1]-1.0)*scale,(offset[2])*scale],
             [(offset[0]+1.0)*scale,(offset[1]-1.0)*scale,(offset[2]-1.0)*scale],
             [(offset[0]+1.0)*scale,(offset[1])*scale,(offset[2]-1.0)*scale]];
-        let order = [0,1,2,0,2,3];
-        for i in order{
-            let point = [face[i][0],face[i][1],face[i][2]];
-            vert.push(Vertex{position: point,normal:norm,texture:text,});
-        }
     }else if side ==2{
         norm = [0.0,0.0,1.0];
-        let face = [
+        texturemap = [[0.5,0.5],[1.0,0.5],[1.0,1.0],[0.5,1.0]];
+        face = [
             [(offset[0])*scale,(offset[1])*scale,(offset[2])*scale],
             [(offset[0]+1.0)*scale,(offset[1])*scale,(offset[2])*scale],
             [(offset[0]+1.0)*scale,(offset[1]-1.0)*scale,(offset[2])*scale],
             [(offset[0])*scale,(offset[1]-1.0)*scale,(offset[2])*scale]];
-        let order = [0,1,2,0,2,3];
-        for i in order{
-            let point = [face[i][0],face[i][1],face[i][2]];
-            vert.push(Vertex{position: point,normal:norm,texture:text,});
-        }
-        
     }else if side ==3{
         norm = [0.0,0.0,-1.0];
-        let face = [
+        texturemap = [[0.5,0.5],[1.0,0.5],[1.0,1.0],[0.5,1.0]];
+        face = [
             [(offset[0])*scale,(offset[1])*scale,(offset[2]-1.0)*scale],
             [(offset[0]+1.0)*scale,(offset[1])*scale,(offset[2]-1.0)*scale],
             [(offset[0]+1.0)*scale,(offset[1]-1.0)*scale,(offset[2]-1.0)*scale],
             [(offset[0])*scale,(offset[1]-1.0)*scale,(offset[2]-1.0)*scale]];
-        let order = [0,1,2,0,2,3];
-        for i in order{
-            let point = [face[i][0],face[i][1],face[i][2]];
-            vert.push(Vertex{position: point,normal:norm,texture:text,});
-        }
     }else if side ==4{
         norm = [0.0,1.0,0.0];
-        let face = [
+        texturemap = [[0.0,0.5],[0.0,0.5],[1.0,1.0],[0.5,1.0]];
+        face = [
             [(offset[0]    )*scale,(offset[1]    )*scale,(offset[2]    )*scale],
             [(offset[0]+1.0)*scale,(offset[1]    )*scale,(offset[2]    )*scale],
             [(offset[0]+1.0)*scale,(offset[1]    )*scale,(offset[2]-1.0)*scale],
             [(offset[0]    )*scale,(offset[1]    )*scale,(offset[2]-1.0)*scale]];
-        let order = [0,1,2,0,2,3];
-        for i in order{
-            let point = [face[i][0],face[i][1],face[i][2]];
-            vert.push(Vertex{position: point,normal:norm,texture:text,});
-        }
     }else{
         norm = [0.0,-1.0,0.0];
-        let face = [
+        face = [
             [(offset[0]    )*scale,(offset[1]-1.0)*scale,(offset[2]    )*scale],
             [(offset[0]+1.0)*scale,(offset[1]-1.0)*scale,(offset[2]    )*scale],
             [(offset[0]+1.0)*scale,(offset[1]-1.0)*scale,(offset[2]-1.0)*scale],
             [(offset[0]    )*scale,(offset[1]-1.0)*scale,(offset[2]-1.0)*scale]];
-        let order = [0,1,2,0,2,3];
-        for i in order{
-            let point = [face[i][0],face[i][1],face[i][2]];
-            vert.push(Vertex{position: point,normal:norm,texture:text,});
-        }
+    }
+    
+    for i in order{
+        let point = [face[i][0],face[i][1],face[i][2]];
+        let text = texturemap[i];
+        vert.push(Vertex{position: point,normal:norm,texture:text,});
     }
 
 }
 pub fn load_voxel_chunk(display: &Display)->VertexBufferAny{
     implement_vertex!(Vertex, position, normal, texture);
     let mut vertex_data: Vec<Vertex> = Vec::new();
-    /*
-    let mut chunk = [
-        [[0,0,0,0],[0,0,0,0],[0,1,0,0]],
-        [[0,0,1,0],[0,1,1,0],[0,1,0,0]],
-        [[0,0,0,0],[0,0,0,0],[0,0,0,0]]
-        ];*/
-    let mut chunk = [[[0;12];12];12];
+    let mut chunk = [[[1;32];32];32];
 
    let mut ra =rand::thread_rng();
-    for _i in 0..12{
-        chunk[ra.gen_range(0..12)][ra.gen_range(0..12)][ra.gen_range(0..12)] =1;
+    for _i in 0..164{
+        chunk[ra.gen_range(0..32)][ra.gen_range(0..32)][ra.gen_range(0..32)] =0;
     }
+    
     //codes 0 = west, 1 = east, 2 = front, 3 = back, 4 = top, 5 = bottom
     for x in 0..chunk.len(){
         for y in 0..chunk[0].len(){
@@ -174,7 +152,6 @@ pub fn load_voxel_chunk(display: &Display)->VertexBufferAny{
                     }
                     if x as i64 +1 <= chunk.len() as i64-1{
                         if chunk[x+1][y][z] == 0{
-                            //west side
                             side(1,[x as f32,y as f32,z as f32],&mut vertex_data);
                         }
                     }else{
@@ -184,20 +161,16 @@ pub fn load_voxel_chunk(display: &Display)->VertexBufferAny{
                     //front back
                     if y as i64 +1 <= chunk[0].len() as i64-1{
                         if chunk[x][y+1][z] == 0{
-                            //west side
                             side(4,[x as f32,y as f32,z as f32],&mut vertex_data);
                         }
                     }else{
-                        //fail
                         side(4,[x as f32,y as f32,z as f32],&mut vertex_data);
                     }
                     if y as i64 -1 >= 0{
                         if chunk[x][y-1][z] == 0{
-                            //west side
                             side(5,[x as f32,y as f32,z as f32],&mut vertex_data);
                         }
                     }else{
-                        //fail
                         side(5,[x as f32,y as f32,z as f32],&mut vertex_data);
                     }
                     //top and bottom 

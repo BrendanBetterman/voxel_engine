@@ -6,6 +6,7 @@ extern crate glium;
 use glium::{glutin, Surface};
 use std::time::Instant;
 mod support;
+mod render;
 struct Block{
     id:u32,
     rotate:u32,
@@ -47,6 +48,7 @@ fn main() {
                 #version 140
 
                 in vec3 v_normal;
+                
                 out vec4 f_color;
                 
                 const vec3 LIGHT = vec3(-0.2, 0.8, 0.1);
@@ -141,8 +143,8 @@ fn main() {
     support::start_loop(event_loop, move |events| {
         camera.update();
         frame +=1;
-        if frame >=10{
-            println!("{}FPS",1.0/(now.elapsed().as_secs_f64()/10.0));
+        if frame >=10000{
+            println!("{}FPS",1.0/(now.elapsed().as_secs_f64()/10000.0));
             frame = 0;
             now = Instant::now();
         }
@@ -156,7 +158,7 @@ fn main() {
             // get objects rotation
            
         };
-
+        //let vertex_buffer2 = support::load_voxel_chunk(&display);
         // draw parameters
         let params = glium::DrawParameters {
             depth: glium::Depth {
@@ -166,14 +168,14 @@ fn main() {
             },
             .. Default::default()
         };
-
+    
         // drawing a frame
         let mut target = display.draw();
         target.clear_color_and_depth((0.0, 0.0, 0.0, 0.0), 1.0);
         target.draw(&vertex_buffer2,
             &glium::index::NoIndices(glium::index::PrimitiveType::TrianglesList),
             &program, &uniforms, &params).unwrap();
-
+    
         target.finish().unwrap();
 
         let mut action = support::Action::Continue;
