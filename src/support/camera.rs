@@ -10,6 +10,7 @@ pub struct CameraState {
     direction: (f32, f32, f32),
     angle: (f32,f32,f32),
     mouse_start_position: (Option<f32>,Option<f32>),
+    delta_time: f32,
     rotate_left: bool,
     rotate_right: bool,
 
@@ -24,11 +25,12 @@ pub struct CameraState {
 impl CameraState {
     pub fn new() -> CameraState {
         CameraState {
-            aspect_ratio: 1024.0 / 768.0,
+            aspect_ratio: 1920.0 / 1080.0,//768.0
             position: (0.0, 1.6, 0.0),
             direction: (0.0, 0.0, -1.0),
             angle: (0.0,0.0,0.0),
             mouse_start_position: (None,None),
+            delta_time: 0.0,
             rotate_left: false,
             rotate_right: false,
 
@@ -40,7 +42,9 @@ impl CameraState {
             moving_backward: false,
         }
     }
-
+    pub fn set_delta_time(&mut self,time:f32){
+        self.delta_time = time;
+    }
     pub fn set_position(&mut self, pos: (f32, f32, f32)) {
         self.position = pos;
     }
@@ -137,7 +141,7 @@ impl CameraState {
             let len = len.sqrt();
             (f.0 / len, f.1 / len, f.2 / len)
         };
-
+        let move_speed = 0.5* self.delta_time;
         //let up = (0.0, 1.0, 0.0);
 
         //let s = (f.1 * up.2 - f.2 * up.1,
@@ -155,9 +159,14 @@ impl CameraState {
                  s.0 * f.1 - s.1 * f.0);
 
         if self.moving_up {
-            self.position.0 += u.0 * 0.01;
-            self.position.1 += u.1 * 0.01;
-            self.position.2 += u.2 * 0.01;
+            //self.position.0 += move_speed;
+            self.position.1 += move_speed;
+            //self.position.2 += move_speed;
+        }
+        if self.moving_down {
+           // self.position.0 -=  move_speed;
+            self.position.1 -=  move_speed;
+           // self.position.2 -=  move_speed;
         }
         //new
         if self.rotate_left {
@@ -171,33 +180,28 @@ impl CameraState {
             self.angle.2 -=  0.01;
         }
         if self.moving_left {
-            self.position.0 -= s.0 * 0.01;
-            self.position.1 -= s.1 * 0.01;
-            self.position.2 -= s.2 * 0.01;
+            self.position.0 -= s.0 * move_speed;
+            self.position.1 -= s.1 * move_speed;
+            self.position.2 -= s.2 * move_speed;
         }
 
-        if self.moving_down {
-            self.position.0 -= u.0 * 0.01;
-            self.position.1 -= u.1 * 0.01;
-            self.position.2 -= u.2 * 0.01;
-        }
 
         if self.moving_right {
-            self.position.0 += s.0 * 0.01;
-            self.position.1 += s.1 * 0.01;
-            self.position.2 += s.2 * 0.01;
+            self.position.0 += s.0 * move_speed;
+            self.position.1 += s.1 * move_speed;
+            self.position.2 += s.2 * move_speed;
         }
 
         if self.moving_forward {
-            self.position.0 += self.angle.1.sin() *0.01;
-            self.position.1 += f.1 * 0.01 ;
-            self.position.2 += (self.angle.1+3.14).cos() *0.01;
+            self.position.0 += self.angle.1.sin() * move_speed;
+            //self.position.1 += f.1 * move_speed;
+            self.position.2 += (self.angle.1+3.14).cos() * move_speed;
         }
 
         if self.moving_backward {
-            self.position.0 -= self.angle.1.sin() * 0.01;
-            self.position.1 -= f.1 * 0.01;
-            self.position.2 -= (self.angle.1+3.14).cos() * 0.01;
+            self.position.0 -= self.angle.1.sin() * move_speed;
+           // self.position.1 -= f.1 * move_speed;
+            self.position.2 -= (self.angle.1+3.14).cos() * move_speed;
         }
     }
 
@@ -207,6 +211,7 @@ impl CameraState {
             glutin::event::WindowEvent::CursorMoved { position, ..} =>position,
             _ => return,
         };
+        
         //check if mouse origin was set
         let mouse_x:f32 = match self.mouse_start_position.0 {
             None => {self.mouse_start_position.0 = Some(position.x as f32); position.x as f32},
@@ -247,8 +252,8 @@ impl CameraState {
         };
         match key {
             
-            glutin::event::VirtualKeyCode::Up => self.moving_up = pressed,
-            glutin::event::VirtualKeyCode::Down => self.moving_down = pressed,
+            glutin::event::VirtualKeyCode::Space => self.moving_up = pressed,
+            glutin::event::VirtualKeyCode::LShift => self.moving_down = pressed,
             //new
             glutin::event::VirtualKeyCode::Left => self.rotate_left = pressed,
             glutin::event::VirtualKeyCode::Right => self.rotate_right = pressed,

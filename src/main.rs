@@ -16,15 +16,20 @@ fn main() {
     let mut camera = support::camera::CameraState::new();
     let mut now = Instant::now();
     let mut frame = 0;
+    let mut delta_time = Instant::now();
     // the main loop
     support::start_loop(event_loop, move |events| {
+        camera.set_delta_time(delta_time.elapsed().as_secs_f32());
+        delta_time = Instant::now();
         camera.update();
+        
         frame +=1;
         if frame >=1000{
             println!("{}FPS",1.0/(now.elapsed().as_secs_f64()/1000.0));
             frame = 0;
             now = Instant::now();
         }
+
         renderer.render_frame(&camera);
         
         let mut action = support::Action::Continue;

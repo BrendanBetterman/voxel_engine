@@ -2,6 +2,7 @@
 //extern crate glium;
 
 
+use glium::glutin::dpi::Position;
 #[allow(unused_imports)]
 use glium::{glutin, Surface,Display,index::*};
 use glium::vertex::VertexBufferAny;
@@ -18,7 +19,11 @@ pub struct Renderer{
 impl Renderer{
     pub fn new(event_loop:&EventLoop<()>) -> Renderer{
          //= event;//glutin::event_loop::EventLoop::new();
-        let wb = glutin::window::WindowBuilder::new();
+         
+        let wb = glutin::window::WindowBuilder::new().with_title("Pigeoneer")
+            .with_inner_size(glutin::dpi::LogicalSize::new(1280,720))
+            .with_position(glutin::dpi::LogicalPosition::new(320,180));
+           
         let cb = glutin::ContextBuilder::new().with_depth_buffer(24);
         let display = glium::Display::new(wb, cb, &event_loop).unwrap();
         
@@ -174,8 +179,10 @@ impl Renderer{
         };
         // draw parameters
         let params = glium::DrawParameters {
+            
             depth: glium::Depth {
                 test: glium::DepthTest::IfLess,
+
                 write: true,
                 .. Default::default()
             },
@@ -184,6 +191,7 @@ impl Renderer{
         let mut target = self.display.draw();
         //173,225,229 0.68,0.88,0.9
         //252 231 98 0.988,0.906,0.384
+        
         target.clear_color_and_depth((0.68,0.88,0.9, 0.0), 1.0);
         target.draw(&self.vertex_buffer,
             &glium::index::NoIndices(glium::index::PrimitiveType::TrianglesList),

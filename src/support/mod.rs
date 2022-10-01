@@ -60,8 +60,65 @@ pub fn start_loop<F>(event_loop: EventLoop<()>, mut callback: F)->! where F: 'st
         normal: [f32; 3],
         texture: [f32; 2],
     }
+fn get_map(image_x:u32,image_y:u32,flipped:bool)->[[f32;2];4]{
+    let (width,height) = (4,4);
+    let x_off = 1.0/width as f32;
+    let y_off = 1.0/height as f32;
+    let x = (image_x) as f32 * x_off;
+    let y = (height-image_y) as f32 * y_off;
+    let x_buffer:f32;
+    if x >=0.01{
+        x_buffer = 0.01;
+    }else{
+        x_buffer = 0.0;
+    }
+    let y_buffer:f32;
+    if y >=0.01{
+        y_buffer = 0.01;
+    }else{
+        y_buffer = 0.0;
+    }
+    if flipped{
+        return [
+            [x+x_off-x_buffer,y      -y_buffer],
+            [x      +x_buffer,y      -y_buffer],
+            [x      +x_buffer,y-y_off+y_buffer],
+            [x+x_off-x_buffer,y-y_off+y_buffer]
+            ];
+    }else{
+        return [
+            [x+x_off-x_buffer,y      -y_buffer],
+            [x+x_off-x_buffer,y-y_off+y_buffer],
+            [x      +x_buffer,y-y_off+y_buffer],
+            [x      +x_buffer,y      -y_buffer]
+            ];
+    }
+   
+}
 fn get_texture_map_by_id(id:u32)->[[[f32;2];4];6]{
     return match id{
+        1=>[
+            get_map(1, 0,false),//west
+            get_map(1, 0,false),//east
+            get_map(1, 0,true),//front
+            get_map(1, 0,true),//back
+            get_map(0, 0,false),//top
+            get_map(0, 1,false)],//bottom
+        2=>[
+            get_map(2, 0,false),//west
+            get_map(2, 0,false),//east
+            get_map(2, 0,true),//front
+            get_map(2, 0,true),//back
+            get_map(2, 0,false),//top
+            get_map(2, 0,false)],//bottom
+        _=>[
+            get_map(0, 1,false),//west
+            get_map(0, 1,false),//east
+            get_map(0, 1,true),//front
+            get_map(0, 1,true),//back
+            get_map(0, 1,false),//top
+            get_map(0, 1,false)],//bottom
+        /* 
         1=> [[[0.5,1.0],[0.5,0.5],[1.0,0.5],[1.0,1.0]],
         [[0.5,1.0],[0.5,0.5],[1.0,0.5],[1.0,1.0]],
         [[1.0,1.0],[0.5,1.0],[0.5,0.5],[1.0,0.5]],
@@ -75,6 +132,7 @@ fn get_texture_map_by_id(id:u32)->[[[f32;2];4];6]{
             [[0.0,0.5],[0.5,0.5],[0.5,0.0],[0.0,0.0]],
             [[0.0,0.5],[0.5,0.5],[0.5,0.0],[0.0,0.0]],
             [[0.0,0.5],[0.5,0.5],[0.5,0.0],[0.0,0.0]]],
+            */
     }
 }
 fn side(id:u32,side:u8,offset:[f32;3], vert:&mut Vec<Vertex>){
