@@ -25,7 +25,7 @@ impl CameraState {
     pub fn new() -> CameraState {
         CameraState {
             aspect_ratio: 1024.0 / 768.0,
-            position: (0.1, 0.1, 1.0),
+            position: (0.0, 1.6, 0.0),
             direction: (0.0, 0.0, -1.0),
             angle: (0.0,0.0,0.0),
             mouse_start_position: (None,None),
@@ -51,7 +51,6 @@ impl CameraState {
     //mew
     pub fn get_rot_y(&self) -> [[f32; 4]; 4] {
         let angle:f32 = self.angle.1;
-        // note: remember that this is column-major, so the lines of code are actually columns
         [
             [ angle.cos(),0.0,angle.sin(),   0.0],
             [0.0         ,1.0,0.0        ,   0.0],
@@ -60,7 +59,6 @@ impl CameraState {
         ]
     }pub fn get_rot_z(&self) -> [[f32; 4]; 4] {
         let angle:f32 = self.angle.2;
-        // note: remember that this is column-major, so the lines of code are actually columns
         [
             [angle.cos(),-angle.sin(),0.0,   0.0],
             [angle.sin(), angle.cos(),0.0,   0.0],
@@ -71,7 +69,6 @@ impl CameraState {
 
     pub fn get_rot_x(&self) -> [[f32; 4]; 4] {
         let angle:f32 = self.angle.0;
-        // note: remember that this is column-major, so the lines of code are actually columns
         [
             [1.0,0.0        ,0.0         ,   0.0],
             [0.0,angle.cos(),-angle.sin(),   0.0],
@@ -109,7 +106,7 @@ impl CameraState {
         let s = (f.1 * up.2 - f.2 * up.1,
                  f.2 * up.0 - f.0 * up.2,
                  f.0 * up.1 - f.1 * up.0);
-
+            
         let s_norm = {
             let len = s.0 * s.0 + s.1 * s.1 + s.2 * s.2;
             let len = len.sqrt();
@@ -141,11 +138,11 @@ impl CameraState {
             (f.0 / len, f.1 / len, f.2 / len)
         };
 
-        let up = (0.0, 1.0, 0.0);
+        //let up = (0.0, 1.0, 0.0);
 
-        let s = (f.1 * up.2 - f.2 * up.1,
-                 f.2 * up.0 - f.0 * up.2,
-                 f.0 * up.1 - f.1 * up.0);
+        //let s = (f.1 * up.2 - f.2 * up.1,
+        //         f.2 * up.0 - f.0 * up.2,
+          //       f.0 * up.1 - f.1 * up.0);
 
         let s = {
             //let len = s.0 * s.0 + s.1 * s.1 + s.2 * s.2;
@@ -260,6 +257,7 @@ impl CameraState {
             glutin::event::VirtualKeyCode::D => self.moving_right = pressed,
             glutin::event::VirtualKeyCode::W => self.moving_forward = pressed,
             glutin::event::VirtualKeyCode::S => self.moving_backward = pressed,
+            glutin::event::VirtualKeyCode::T => print!("{:?}",self.position),
             _ => (),
         };
         
