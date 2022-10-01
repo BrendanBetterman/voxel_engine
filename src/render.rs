@@ -8,9 +8,86 @@ use glium::vertex::VertexBufferAny;
 use glutin::{event_loop::EventLoop};
 use std::io::Cursor;
 use super::support::camera::CameraState;
-
-
-pub fn render(camera: &CameraState,vertex_buffer2:&glium::vertex::VertexBufferAny){
+use super::support;
+pub struct Renderer{
+    //event_loop: EventLoop<()>,
+    display: Display,
+    diffuse_texture: glium::texture::SrgbTexture2d,
+    vertex_buffer: VertexBufferAny,
+}
+impl Renderer{
+    pub fn new(event_loop:&EventLoop<()>) -> Renderer{
+         //= event;//glutin::event_loop::EventLoop::new();
+        let wb = glutin::window::WindowBuilder::new();
+        let cb = glutin::ContextBuilder::new().with_depth_buffer(24);
+        let display = glium::Display::new(wb, cb, &event_loop).unwrap();
+        
+        let image = image::load(Cursor::new(&include_bytes!("Texture.png")),
+                            image::ImageFormat::Png).unwrap().to_rgba8();
+        let image_dimensions = image.dimensions();
+        let image = glium::texture::RawImage2d::from_raw_rgba_reversed(&image.into_raw(), image_dimensions);
+        let diffuse_texture = glium::texture::SrgbTexture2d::new(&display, image).unwrap();
+        let vex_buff = support::load_voxel_chunk(&display);
+        return Renderer{
+            //event_loop: event_loop,
+            display: display,
+            diffuse_texture: diffuse_texture,
+            vertex_buffer: vex_buff,
+        };
+    }
+    //pub fn update_mesh(&mut self){
+    //     self.vertex_buffer = support::load_voxel_chunk(&self.display);
+    //}
+    pub fn render_frame(&mut self,camera:&CameraState){
+        
+        let program = program!(&self.display,
+            140 => {
+                vertex: "
+                    #version 140
+    
+                    uniform mat4 persp_matrix;
+                    uniform mat4 view_matrix;
+                    uniform mat4 rot_x_matrix;
+                    uniform mat4 rot_y_matrix;
+                    in vec3 position;
+                    in vec3 normal;
+                    in vec2 texture;
+    
+                    out vec3 v_position;
+                    out vec3 v_normal;
+                    out vec2 v_tex_coords;
+    
+                    void main() {
+                        v_tex_coords = texture;
+                        v_position = position;
+                        v_normal = normal;
+                        gl_Position = persp_matrix * (rot_x_matrix*(rot_y_matrix * view_matrix * vec4(v_position * 0.005, 1.0)));
+                    }
+                ",
+    
+                fragment: "
+                    #version 140
+    
+                    in vec3 v_normal;
+                    in vec2 v_tex_coords;
+    
+                    out vec4 f_color;
+                    
+                    uniform sampler2D diffuse_tex;
+    
+                    const vec3 LIGHT = vec3(-0.2, 0.8, 0.1);
+                    
+    
+                    void main() {
+                        vec3 diffuse_color = texture(diffuse_tex, v_tex_coords).rgb;
+    
+                        float lum = max(dot(normalize(v_normal), normalize(LIGHT)), 0.0);
+                        vec3 color = (0.3 + 0.7 * lum) * diffuse_color;//vec3(0.988,0.906,0.384);
+                        //gl_FragColor = vec4(1.0,0.0,0.9,1.0);
+                        gl_FragColor = vec4(color, 1.0);
+                    }
+                ",
+            },
     
             110 => {
                 vertex: "
