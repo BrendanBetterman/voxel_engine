@@ -7,7 +7,6 @@ use glium::glutin::event::{Event, StartCause};
 use obj;
 use rand::Rng;
 pub mod camera;
-
 pub enum Action {
     Stop,
     Continue,
@@ -38,7 +37,7 @@ pub fn start_loop<F>(event_loop: EventLoop<()>, mut callback: F)->! where F: 'st
 
         let action = if run_callback {
             let action = callback(&events_buffer);
-            next_frame_time = Instant::now() + Duration::from_nanos(0);//16666667
+            next_frame_time = Instant::now() + Duration::from_nanos(16666667);//16666667
             // TODO: Add back the old accumulator loop in some way
 
             events_buffer.clear();
@@ -71,7 +70,7 @@ fn side(side:u8,offset:[f32;3], vert:&mut Vec<Vertex>){
     let order = [0,1,2,0,2,3];
     if side ==0{
         norm = [-1.0,0.0,0.0];
-        texturemap = [[0.5,0.5],[1.0,0.5],[1.0,1.0],[0.5,1.0]];
+        texturemap = [[0.5,1.0],[0.5,0.5],[1.0,0.5],[1.0,1.0]];
         face = [
             [(offset[0])*scale,(offset[1])*scale,(offset[2])*scale],
             [(offset[0])*scale,(offset[1]-1.0)*scale,(offset[2])*scale],
@@ -80,7 +79,7 @@ fn side(side:u8,offset:[f32;3], vert:&mut Vec<Vertex>){
     }else
     if side ==1{
         norm = [1.0,0.0,0.0];
-        texturemap = [[0.5,0.5],[1.0,0.5],[1.0,1.0],[0.5,1.0]];
+        texturemap = [[0.5,1.0],[0.5,0.5],[1.0,0.5],[1.0,1.0]];
         face = [
             [(offset[0]+1.0)*scale,(offset[1])*scale,(offset[2])*scale],
             [(offset[0]+1.0)*scale,(offset[1]-1.0)*scale,(offset[2])*scale],
@@ -88,7 +87,7 @@ fn side(side:u8,offset:[f32;3], vert:&mut Vec<Vertex>){
             [(offset[0]+1.0)*scale,(offset[1])*scale,(offset[2]-1.0)*scale]];
     }else if side ==2{
         norm = [0.0,0.0,1.0];
-        texturemap = [[0.5,0.5],[1.0,0.5],[1.0,1.0],[0.5,1.0]];
+        texturemap = [[1.0,1.0],[0.5,1.0],[0.5,0.5],[1.0,0.5]];
         face = [
             [(offset[0])*scale,(offset[1])*scale,(offset[2])*scale],
             [(offset[0]+1.0)*scale,(offset[1])*scale,(offset[2])*scale],
@@ -96,21 +95,23 @@ fn side(side:u8,offset:[f32;3], vert:&mut Vec<Vertex>){
             [(offset[0])*scale,(offset[1]-1.0)*scale,(offset[2])*scale]];
     }else if side ==3{
         norm = [0.0,0.0,-1.0];
-        texturemap = [[0.5,0.5],[1.0,0.5],[1.0,1.0],[0.5,1.0]];
+        texturemap = [[1.0,1.0],[0.5,1.0],[0.5,0.5],[1.0,0.5]];
         face = [
             [(offset[0])*scale,(offset[1])*scale,(offset[2]-1.0)*scale],
             [(offset[0]+1.0)*scale,(offset[1])*scale,(offset[2]-1.0)*scale],
             [(offset[0]+1.0)*scale,(offset[1]-1.0)*scale,(offset[2]-1.0)*scale],
             [(offset[0])*scale,(offset[1]-1.0)*scale,(offset[2]-1.0)*scale]];
     }else if side ==4{
+        //top
         norm = [0.0,1.0,0.0];
-        texturemap = [[0.0,0.5],[0.0,0.5],[1.0,1.0],[0.5,1.0]];
+        texturemap = [[0.0,1.0],[0.5,1.0],[0.5,0.5],[0.0,0.5]];
         face = [
             [(offset[0]    )*scale,(offset[1]    )*scale,(offset[2]    )*scale],
             [(offset[0]+1.0)*scale,(offset[1]    )*scale,(offset[2]    )*scale],
             [(offset[0]+1.0)*scale,(offset[1]    )*scale,(offset[2]-1.0)*scale],
             [(offset[0]    )*scale,(offset[1]    )*scale,(offset[2]-1.0)*scale]];
     }else{
+        texturemap = [[0.0,0.5],[0.5,0.5],[0.5,0.0],[0.0,0.0]];
         norm = [0.0,-1.0,0.0];
         face = [
             [(offset[0]    )*scale,(offset[1]-1.0)*scale,(offset[2]    )*scale],
@@ -129,11 +130,11 @@ fn side(side:u8,offset:[f32;3], vert:&mut Vec<Vertex>){
 pub fn load_voxel_chunk(display: &Display)->VertexBufferAny{
     implement_vertex!(Vertex, position, normal, texture);
     let mut vertex_data: Vec<Vertex> = Vec::new();
-    let mut chunk = [[[1;32];32];32];
-
+    let mut chunk = [[[0;32];32];32];
+    
    let mut ra =rand::thread_rng();
-    for _i in 0..164{
-        chunk[ra.gen_range(0..32)][ra.gen_range(0..32)][ra.gen_range(0..32)] =0;
+    for _i in 0..1640{
+        chunk[ra.gen_range(0..32)][ra.gen_range(0..32)][ra.gen_range(0..32)] =1;
     }
     
     //codes 0 = west, 1 = east, 2 = front, 3 = back, 4 = top, 5 = bottom
@@ -158,7 +159,7 @@ pub fn load_voxel_chunk(display: &Display)->VertexBufferAny{
                         //fail
                         side(1,[x as f32,y as f32,z as f32],&mut vertex_data);
                     }
-                    //front back
+                    //top bottom
                     if y as i64 +1 <= chunk[0].len() as i64-1{
                         if chunk[x][y+1][z] == 0{
                             side(4,[x as f32,y as f32,z as f32],&mut vertex_data);
@@ -173,7 +174,7 @@ pub fn load_voxel_chunk(display: &Display)->VertexBufferAny{
                     }else{
                         side(5,[x as f32,y as f32,z as f32],&mut vertex_data);
                     }
-                    //top and bottom 
+                    //front back
                     if z as i64 +1 <= chunk[0][0].len() as i64-1{
                         if chunk[x][y][z+1] == 0{
                             //west side
