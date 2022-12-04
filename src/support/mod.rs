@@ -6,6 +6,7 @@ use glium::glutin::event_loop::{EventLoop, ControlFlow};
 use glium::glutin::event::{Event, StartCause};
 use obj;
 use rand::Rng;
+use noise::{NoiseFn, Perlin, Seedable};
 pub mod camera;
 pub enum Action {
     Stop,
@@ -111,6 +112,34 @@ fn get_texture_map_by_id(id:u32)->[[[f32;2];4];6]{
             get_map(2, 0,true),//back
             get_map(2, 0,false),//top
             get_map(2, 0,false)],//bottom
+        3=>[
+            get_map(0, 2,false),//west
+            get_map(0, 2,false),//east
+            get_map(0, 2,true),//front
+            get_map(0, 2,true),//back
+            get_map(0, 2,false),//top
+            get_map(0, 2,false)],//bottom
+        4=>[
+            get_map(0, 1,false),//west
+            get_map(0, 1,false),//east
+            get_map(0, 1,true),//front
+            get_map(0, 1,true),//back
+            get_map(0, 1,false),//top
+            get_map(0, 1,false)],//bottom
+        5=>[
+            get_map(1, 2,false),//west
+            get_map(1, 2,false),//east
+            get_map(1, 2,true),//front
+            get_map(1, 2,true),//back
+            get_map(1, 2,false),//top
+            get_map(1, 2,false)],//bottom
+        6=>[
+            get_map(3, 2,false),//west
+            get_map(3, 2,false),//east
+            get_map(3, 2,true),//front
+            get_map(3, 2,true),//back
+            get_map(2, 2,false),//top
+            get_map(2, 2,false)],//bottom
         _=>[
             get_map(0, 1,false),//west
             get_map(0, 1,false),//east
@@ -135,7 +164,7 @@ fn get_texture_map_by_id(id:u32)->[[[f32;2];4];6]{
             */
     }
 }
-fn side(id:u32,side:u8,offset:[f32;3], vert:&mut Vec<Vertex>){
+fn side(id:u8,side:u8,offset:[f32;3], vert:&mut Vec<Vertex>){
     let norm:[f32;3];
     
     let scale = 10.0;
@@ -145,7 +174,7 @@ fn side(id:u32,side:u8,offset:[f32;3], vert:&mut Vec<Vertex>){
     let texturemap;
     let order = [0,1,2,0,2,3];
     
-    let texture_mapping = get_texture_map_by_id(id);
+    let texture_mapping = get_texture_map_by_id(id as u32);
     match side{
         0=>{
             norm = [-1.0,0.0,0.0];
@@ -204,14 +233,76 @@ fn side(id:u32,side:u8,offset:[f32;3], vert:&mut Vec<Vertex>){
     }
 
 }
+fn worm<const Size : usize >(chunk: &mut [[[u8;Size];Size];Size],pos: &mut [i32;2]){
+    let mut CHUNKSIZE:i32 = Size as i32;
+    let mut ra =rand::thread_rng();
+    let height = ra.gen_range(1..5);
+    for y in height..height+ra.gen_range(1..20){
+        for i in (-2)..2{
+            for u in (-2)..2{
+                if pos[0] + i > 0 && pos[0] + i < CHUNKSIZE && pos[1] + u > 0 && pos[1] + u < CHUNKSIZE{
+                    for y2 in y..y+2{
+                        chunk[ (pos[0] + i) as usize][y2][(pos[1]+u)as usize] = 0;
+                    }
+                }
+            }
+        }
+        let movex = ra.gen_range(-2..2) +pos[0];
+        let movez = ra.gen_range(-2..2) + pos[1];
+        if movex > 0 && movex < CHUNKSIZE{
+            pos[0] = movex;
+        }
+        if movez > 0 && movez < CHUNKSIZE{
+            pos[1] = movez;
+        }
+
+    }
+    
+}
 pub fn load_voxel_chunk(display: &Display)->VertexBufferAny{
     implement_vertex!(Vertex, position, normal, texture);
     let mut vertex_data: Vec<Vertex> = Vec::new();
-    let mut chunk = [[[0;32];32];32];
+    const CHUNKSIZE:usize  = 96;
+    print!("build chunk");
+    let mut chunk = [[[0 as u8 ;CHUNKSIZE];CHUNKSIZE];CHUNKSIZE];
     
    let mut ra =rand::thread_rng();
-    for _i in 0..1640{
-        chunk[ra.gen_range(0..32)][ra.gen_range(0..32)][ra.gen_range(0..32)] =ra.gen_range(1..3);
+    for _i in 0..100{
+        chunk[ra.gen_range(0..CHUNKSIZE)][ra.gen_range(0..CHUNKSIZE)][ra.gen_range(0..CHUNKSIZE)] =ra.gen_range(1..3);
+    }
+    let perlin = Perlin::new(100);
+    let smoothness = 0.035;
+    let slope = 7.5;
+    let baseheight = 2.0;
+    //world
+    for x in 0..CHUNKSIZE{
+        for z in 0..CHUNKSIZE{
+            let height = ((perlin.get([x as f64 * smoothness,z as f64* smoothness,1.0])+baseheight)*slope)as usize;
+            for y in 0..height{
+                if y < height -3{
+                    let orespawn = ra.gen_range(0..10);
+                    if orespawn == 9{
+                        chunk[x][y][z] = 3;
+                    }else if orespawn == 7{
+                        chunk[x][y][z] = 6;
+                    }else{
+                        chunk[x][y][z] = 5;
+                    }
+                }else if y< height -1{
+                    chunk[x][y][z] = 4;
+                }else{
+                    chunk[x][y][z] = 1;
+                }
+            }
+
+        } 
+    }
+    //cave
+    for _i in 0..ra.gen_range(5..20){
+        let mut pos = [ra.gen_range(0..CHUNKSIZE as i32),ra.gen_range(0..CHUNKSIZE as i32)];
+        worm(&mut chunk,&mut pos);
+        
+
     }
     
     //codes 0 = west, 1 = east, 2 = front, 3 = back, 4 = top, 5 = bottom

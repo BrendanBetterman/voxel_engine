@@ -179,13 +179,12 @@ impl Renderer{
         };
         // draw parameters
         let params = glium::DrawParameters {
-            
             depth: glium::Depth {
                 test: glium::DepthTest::IfLess,
-
                 write: true,
                 .. Default::default()
             },
+            backface_culling: glium::draw_parameters::BackfaceCullingMode::CullingDisabled,
             .. Default::default()
         };
         let mut target = self.display.draw();
