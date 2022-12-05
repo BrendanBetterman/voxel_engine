@@ -11,13 +11,14 @@ use std::io::Cursor;
 use crate::support::create_voxel_chunk;
 
 use super::support::camera::CameraState;
+use crate::support::Chunk;
 use super::support;
 pub struct Renderer{
     //event_loop: EventLoop<()>,
     display: Display,
     diffuse_texture: glium::texture::SrgbTexture2d,
     vertex_buffer: Vec<VertexBufferAny>,
-    chunk:Vec<[[[u8;32];32];32]>,
+    chunk:Vec<Chunk>,//Vec<[[[u8;32];32];32]>,
     
 }
 impl Renderer{
@@ -39,9 +40,10 @@ impl Renderer{
         
         let mut chunk = Vec::new();
         let mut vex_buff = Vec::new();
+        
         for i in 0..8{
             chunk.push(create_voxel_chunk((32*i)as usize,1));
-            vex_buff.push(support::load_voxel_chunk(&display,&chunk[i],32.0* i as f32,1.0));
+            vex_buff.push(support::load_voxel_chunk(&display,&chunk[i].chunk,32.0* i as f32,1.0));
         }
         //let mut chunk = create_voxel_chunk(0.0,0.0);
         
@@ -210,9 +212,20 @@ impl Renderer{
         let mut target = self.display.draw();
         //173,225,229 0.68,0.88,0.9
         //252 231 98 0.988,0.906,0.384
-        
+        if camera.clicked{
+            
+            self.chunk[0].chunk[camera.position.0 as usize][camera.position.1 as usize][camera.position.2 as usize] = 1;
+            self.vertex_buffer[0] =support::load_voxel_chunk(&self.display,&self.chunk[0].chunk,0.0,1.0);
+        }
         target.clear_color_and_depth((0.68,0.88,0.9, 0.0), 1.0);
         for i in 0..self.vertex_buffer.len(){
+            //print!("{}",(camera.position.0/32.0)as u8);
+            if (self.chunk[i].pos[0] as f32) < (camera.position.0){
+                print!("moved chunk");
+                self.chunk[i] = create_voxel_chunk((32.0*(camera.position.0 /32.0))as usize+7,1);
+                
+                
+            } 
             target.draw(&self.vertex_buffer[i],
             &glium::index::NoIndices(glium::index::PrimitiveType::TrianglesList),
             &program, &uniforms, &params).unwrap();

@@ -6,14 +6,14 @@ use glium::{glutin, Surface};
 
 pub struct CameraState {
     aspect_ratio: f32,
-    position: (f32, f32, f32),
-    pub direction: (f32, f32, f32),
-    pub angle: (f32,f32,f32),
+    pub position: (f32, f32, f32),
+    direction: (f32, f32, f32),
+    angle: (f32,f32,f32),
     mouse_start_position: (Option<f32>,Option<f32>),
     delta_time: f32,
     rotate_left: bool,
     rotate_right: bool,
-
+    pub clicked: bool,
     moving_up: bool,
     moving_left: bool,
     moving_down: bool,
@@ -33,7 +33,7 @@ impl CameraState {
             delta_time: 0.0,
             rotate_left: false,
             rotate_right: false,
-
+            clicked: false,
             moving_up: false,
             moving_left: false,
             moving_down: false,
@@ -260,6 +260,7 @@ impl CameraState {
             glutin::event::VirtualKeyCode::W => self.moving_forward = pressed,
             glutin::event::VirtualKeyCode::S => self.moving_backward = pressed,
             glutin::event::VirtualKeyCode::T => print!("{:?}",self.position),
+            glutin::event::VirtualKeyCode::E => self.clicked = pressed,
             _ => (),
         };
         
