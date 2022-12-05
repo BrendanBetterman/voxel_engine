@@ -1,0 +1,8 @@
+"filename", "language", "TOML", "Rust", "Markdown", "comment", "blank", "total"
+"c:\Rust\voxel_engine\Cargo.toml", "TOML", 13, 0, 0, 1, 5, 19
+"c:\Rust\voxel_engine\README.md", "Markdown", 0, 0, 3, 0, 2, 5
+"c:\Rust\voxel_engine\src\main.rs", "Rust", 0, 48, 0, 9, 15, 72
+"c:\Rust\voxel_engine\src\render.rs", "Rust", 0, 185, 0, 13, 45, 243
+"c:\Rust\voxel_engine\src\support\camera.rs", "Rust", 0, 205, 0, 24, 40, 269
+"c:\Rust\voxel_engine\src\support\mod.rs", "Rust", 0, 379, 0, 30, 33, 442
+"Total", "-", 13, 817, 3, 77, 140, 1050

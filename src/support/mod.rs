@@ -295,7 +295,7 @@ fn worm<const Size : usize >(chunk: &mut [[[u8;Size];Size];Size],pos: &mut [i32;
     }
     
 }
-pub fn create_voxel_chunk()-> [[[u8;32];32];32]{
+pub fn create_voxel_chunk(chunk_x:f32,chunk_z:f32)-> [[[u8;32];32];32]{
     const CHUNKSIZE:usize  = 32;
     
     print!("build chunk");
@@ -314,7 +314,7 @@ pub fn create_voxel_chunk()-> [[[u8;32];32];32]{
     
     for x in 0..CHUNKSIZE{
         for z in 0..CHUNKSIZE{
-            let height = ((perlin.get([x as f64 * smoothness,z as f64* smoothness,1.0])+baseheight)*slope)as usize;
+            let height = ((perlin.get([(x as f64+chunk_x as f64) * smoothness,(z as f64+chunk_z as f64)* smoothness,1.0])+baseheight)*slope)as usize;
             for y in 0..height{
                 if y < height -3{
                     let orespawn = ra.gen_range(0..10);
@@ -342,7 +342,7 @@ pub fn create_voxel_chunk()-> [[[u8;32];32];32]{
     
     return chunk;
 }
-pub fn load_voxel_chunk<const Size:usize>(display: &Display,chunk: &[[[u8;Size];Size];Size],player_direction:u8)->VertexBufferAny{
+pub fn load_voxel_chunk<const Size:usize>(display: &Display,chunk: &[[[u8;Size];Size];Size],chunk_x:f32,chunk_z:f32)->VertexBufferAny{
     implement_vertex!(Vertex, position, normal, texture);
     let mut vertex_data: Vec<Vertex> = Vec::new();
     //Algo Only check East, South and the top if its air check the next and set the side to the next type.
@@ -351,23 +351,23 @@ pub fn load_voxel_chunk<const Size:usize>(display: &Display,chunk: &[[[u8;Size];
             for z in 0..chunk[0][0].len()-1{
                 if chunk[x][y][z] != 0{ //if not air
                     if chunk[x+1][y][z] == 0{//if east is air generate face of this type
-                        side(chunk[x][y][z],1,[x as f32,y as f32,z as f32],&mut vertex_data);
+                        side(chunk[x][y][z],1,[x as f32+chunk_x,y as f32,z as f32],&mut vertex_data);
                     }
                     if chunk[x][y][z+1] == 0{//south
-                        side(chunk[x][y][z],2,[x as f32,y as f32,z as f32],&mut vertex_data);
+                        side(chunk[x][y][z],2,[x as f32+chunk_x,y as f32,z as f32],&mut vertex_data);
                     }
                     if chunk[x][y+1][z] == 0{//top
-                        side(chunk[x][y][z],5,[x as f32,y as f32,z as f32],&mut vertex_data);
+                        side(chunk[x][y][z],5,[x as f32+chunk_x,y as f32,z as f32],&mut vertex_data);
                     }
                 } else {//if air
                     if chunk[x+1][y][z] != 0{//east
-                        side(chunk[x+1][y][z],0,[x as f32+1.0,y as f32,z as f32],&mut vertex_data);
+                        side(chunk[x+1][y][z],0,[x as f32+1.0+chunk_x,y as f32,z as f32],&mut vertex_data);
                     }
                     if chunk[x][y][z+1] != 0{//south
-                        side(chunk[x][y][z+1],3,[x as f32,y as f32,z as f32+1.0],&mut vertex_data);
+                        side(chunk[x][y][z+1],3,[x as f32+chunk_x,y as f32,z as f32+1.0],&mut vertex_data);
                     }
                     if chunk[x][y+1][z] !=0{//bottom of above
-                        side(chunk[x][y+1][z],4,[x as f32,y as f32 +1.0,z as f32],&mut vertex_data);
+                        side(chunk[x][y+1][z],4,[x as f32+chunk_x,y as f32 +1.0,z as f32],&mut vertex_data);
                     }
                 }
             }
@@ -377,19 +377,19 @@ pub fn load_voxel_chunk<const Size:usize>(display: &Display,chunk: &[[[u8;Size];
     for z in 0..chunk.len(){
         for y in 0..chunk[0].len()-1{
             if chunk[chunk[0][0].len()-1][y][z] != 0{ //if not air
-                side(chunk[0][y][z],1,[(chunk[0][0].len()) as f32-1.0,y as f32,z as f32],&mut vertex_data);
+                side(chunk[0][y][z],1,[(chunk[0][0].len()) as f32-1.0+chunk_x,y as f32,z as f32],&mut vertex_data);
                 if chunk[chunk[0][0].len()-1][y+1][z] ==0{
-                    side(chunk[0][y][z],5,[(chunk[0][0].len()) as f32-1.0,y as f32,z as f32],&mut vertex_data);
+                    side(chunk[0][y][z],5,[(chunk[0][0].len()) as f32-1.0+chunk_x,y as f32,z as f32],&mut vertex_data);
                 }
             }
             if chunk[0][y][z] != 0{ //if not air
-                side(chunk[0][y][z],0,[0.0,y as f32,z as f32],&mut vertex_data);
+                side(chunk[0][y][z],0,[0.0+chunk_x,y as f32,z as f32],&mut vertex_data);
             }
             if chunk[z][y][chunk[0][0].len()-1] != 0{ //if not air
-                side(chunk[z][y][0],2,[z as f32,y as f32,(chunk[0][0].len()) as f32-1.0],&mut vertex_data);
+                side(chunk[z][y][0],2,[z as f32+chunk_x,y as f32,(chunk[0][0].len()) as f32-1.0],&mut vertex_data);
             }
             if chunk[z][y][0] != 0{ //if not air
-                side(chunk[z][y][0],3,[z as f32,y as f32,0.0],&mut vertex_data);
+                side(chunk[z][y][0],3,[z as f32+chunk_x,y as f32,0.0],&mut vertex_data);
             }
         }
     }
