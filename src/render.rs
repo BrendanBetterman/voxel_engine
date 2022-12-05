@@ -16,12 +16,8 @@ pub struct Renderer{
     //event_loop: EventLoop<()>,
     display: Display,
     diffuse_texture: glium::texture::SrgbTexture2d,
-    vertex_buffer: VertexBufferAny,
-    vertex_buffer2: VertexBufferAny,
-    vertex_buffer3: VertexBufferAny,
-    vertex_buffer4: VertexBufferAny,
-    vertex_buffer5: VertexBufferAny,
-    chunk: [[[[u8;32];32];32];5],
+    vertex_buffer: Vec<VertexBufferAny>,
+    chunk:Vec<[[[u8;32];32];32]>,
     
 }
 impl Renderer{
@@ -41,33 +37,31 @@ impl Renderer{
         let image = glium::texture::RawImage2d::from_raw_rgba_reversed(&image.into_raw(), image_dimensions);
         let diffuse_texture = glium::texture::SrgbTexture2d::new(&display, image).unwrap();
         
-       
-        let mut chunk = [create_voxel_chunk(0.0,0.0);5];
-        for i in 0..5{
-            chunk[i] = create_voxel_chunk(i as f32 *32.0,0.0);
-            
+        let mut chunk = Vec::new();
+        let mut vex_buff = Vec::new();
+        for i in 0..8{
+            chunk.push(create_voxel_chunk((32*i)as usize,1));
+            vex_buff.push(support::load_voxel_chunk(&display,&chunk[i],32.0* i as f32,1.0));
         }
-        let vex_buff = support::load_voxel_chunk(&display,&chunk[0],0.0,0.0);
-        let vex_buff2 = support::load_voxel_chunk(&display,&chunk[1],32.0,0.0);
-        let vex_buff3 = support::load_voxel_chunk(&display,&chunk[2],64.0,0.0);
-        let vex_buff4 = support::load_voxel_chunk(&display,&chunk[3],96.0,0.0);
-        let vex_buff5 = support::load_voxel_chunk(&display,&chunk[4],128.0,0.0);
+        //let mut chunk = create_voxel_chunk(0.0,0.0);
+        
+        //create_voxel_chunk(i as f32 *32.0,0.0);
+            
+        
+        //let vex_buff = support::load_voxel_chunk(&display,&chunk[0],0.0,0.0);
+        
         return Renderer{
             //event_loop: event_loop,
             display: display,
             diffuse_texture: diffuse_texture,
             vertex_buffer: vex_buff,
-            vertex_buffer2: vex_buff2,
-            vertex_buffer3: vex_buff3,
-            vertex_buffer4: vex_buff4,
-            vertex_buffer5: vex_buff5,
             chunk: chunk,
             
         };
     }
     pub fn update_mesh(&mut self,player_direction: u8){
-         self.vertex_buffer = support::load_voxel_chunk(&self.display,&mut self.chunk[0],0.0,0.0);
-         self.vertex_buffer = support::load_voxel_chunk(&self.display,&mut self.chunk[1],32.0,0.0);
+         //self.vertex_buffer = support::load_voxel_chunk(&self.display,&mut self.chunk[0],0.0,0.0);
+        // self.vertex_buffer = support::load_voxel_chunk(&self.display,&mut self.chunk[1],32.0,0.0);
     }
     pub fn render_frame(&mut self,camera:&CameraState){
         
@@ -218,24 +212,13 @@ impl Renderer{
         //252 231 98 0.988,0.906,0.384
         
         target.clear_color_and_depth((0.68,0.88,0.9, 0.0), 1.0);
-        target.draw(&self.vertex_buffer,
+        for i in 0..self.vertex_buffer.len(){
+            target.draw(&self.vertex_buffer[i],
             &glium::index::NoIndices(glium::index::PrimitiveType::TrianglesList),
             &program, &uniforms, &params).unwrap();
-        target.draw(&self.vertex_buffer2,
-                &glium::index::NoIndices(glium::index::PrimitiveType::TrianglesList),
-                &program, &uniforms, &params).unwrap();
-
-        target.draw(&self.vertex_buffer3,
-            &glium::index::NoIndices(glium::index::PrimitiveType::TrianglesList),
-            &program, &uniforms, &params).unwrap();
-
-        target.draw(&self.vertex_buffer4,
-            &glium::index::NoIndices(glium::index::PrimitiveType::TrianglesList),
-            &program, &uniforms, &params).unwrap();
-
-        target.draw(&self.vertex_buffer5,
-            &glium::index::NoIndices(glium::index::PrimitiveType::TrianglesList),
-            &program, &uniforms, &params).unwrap();
+        }
+        
+        
         target.finish().unwrap();
 
     }
