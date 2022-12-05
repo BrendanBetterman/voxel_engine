@@ -7,8 +7,8 @@ use glium::{glutin, Surface};
 pub struct CameraState {
     aspect_ratio: f32,
     position: (f32, f32, f32),
-    direction: (f32, f32, f32),
-    angle: (f32,f32,f32),
+    pub direction: (f32, f32, f32),
+    pub angle: (f32,f32,f32),
     mouse_start_position: (Option<f32>,Option<f32>),
     delta_time: f32,
     rotate_left: bool,
@@ -154,9 +154,6 @@ impl CameraState {
             ((self.angle.1+1.57).sin(), 0.0, (self.angle.1+4.71).cos())
         };
 
-        let u = (s.1 * f.2 - s.2 * f.1,
-                 s.2 * f.0 - s.0 * f.2,
-                 s.0 * f.1 - s.1 * f.0);
 
         if self.moving_up {
             //self.position.0 += move_speed;

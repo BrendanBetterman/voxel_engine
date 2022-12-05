@@ -8,6 +8,8 @@ use glium::{glutin, Surface,Display,index::*};
 use glium::vertex::VertexBufferAny;
 use glutin::{event_loop::EventLoop};
 use std::io::Cursor;
+use crate::support::create_voxel_chunk;
+
 use super::support::camera::CameraState;
 use super::support;
 pub struct Renderer{
@@ -15,6 +17,8 @@ pub struct Renderer{
     display: Display,
     diffuse_texture: glium::texture::SrgbTexture2d,
     vertex_buffer: VertexBufferAny,
+    chunk: [[[u8;32];32];32],
+    
 }
 impl Renderer{
     pub fn new(event_loop:&EventLoop<()>) -> Renderer{
@@ -32,17 +36,22 @@ impl Renderer{
         let image_dimensions = image.dimensions();
         let image = glium::texture::RawImage2d::from_raw_rgba_reversed(&image.into_raw(), image_dimensions);
         let diffuse_texture = glium::texture::SrgbTexture2d::new(&display, image).unwrap();
-        let vex_buff = support::load_voxel_chunk(&display);
+        
+       
+        let chunk = create_voxel_chunk();
+        let vex_buff = support::load_voxel_chunk(&display,&chunk,0);
         return Renderer{
             //event_loop: event_loop,
             display: display,
             diffuse_texture: diffuse_texture,
             vertex_buffer: vex_buff,
+            chunk: chunk,
+            
         };
     }
-    //pub fn update_mesh(&mut self){
-    //     self.vertex_buffer = support::load_voxel_chunk(&self.display);
-    //}
+    pub fn update_mesh(&mut self,player_direction: u8){
+         self.vertex_buffer = support::load_voxel_chunk(&self.display,&mut self.chunk,player_direction);
+    }
     pub fn render_frame(&mut self,camera:&CameraState){
         
         let program = program!(&self.display,
@@ -184,7 +193,7 @@ impl Renderer{
                 write: true,
                 .. Default::default()
             },
-            backface_culling: glium::draw_parameters::BackfaceCullingMode::CullingDisabled,
+            backface_culling: glium::draw_parameters::BackfaceCullingMode::CullClockwise,
             .. Default::default()
         };
         let mut target = self.display.draw();

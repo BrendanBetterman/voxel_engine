@@ -12,6 +12,15 @@ pub enum Action {
     Stop,
     Continue,
 }
+pub enum Blocks{
+    Air,
+    Dirt,
+    Grass,
+    Stone,
+    Amethyst,
+    WormWhole,
+    Graphite,
+}
 
 pub fn start_loop<F>(event_loop: EventLoop<()>, mut callback: F)->! where F: 'static + FnMut(&Vec<Event<'_, ()>>) -> Action {
     let mut events_buffer = Vec::new();
@@ -96,44 +105,44 @@ fn get_map(image_x:u32,image_y:u32,flipped:bool)->[[f32;2];4]{
     }
    
 }
-fn get_texture_map_by_id(id:u32)->[[[f32;2];4];6]{
+fn get_texture_map_by_id(id:Blocks)->[[[f32;2];4];6]{
     return match id{
-        1=>[
+        Blocks::Grass=>[
             get_map(1, 0,false),//west
             get_map(1, 0,false),//east
             get_map(1, 0,true),//front
             get_map(1, 0,true),//back
             get_map(0, 0,false),//top
             get_map(0, 1,false)],//bottom
-        2=>[
-            get_map(2, 0,false),//west
-            get_map(2, 0,false),//east
-            get_map(2, 0,true),//front
-            get_map(2, 0,true),//back
-            get_map(2, 0,false),//top
-            get_map(2, 0,false)],//bottom
-        3=>[
+        Blocks::Graphite=>[
+            get_map(3, 1,false),//west
+            get_map(3, 1,false),//east
+            get_map(3, 1,true),//front
+            get_map(3, 1,true),//back
+            get_map(3, 1,false),//top
+            get_map(3, 1,false)],//bottom
+        Blocks::Amethyst=>[
             get_map(0, 2,false),//west
             get_map(0, 2,false),//east
             get_map(0, 2,true),//front
             get_map(0, 2,true),//back
             get_map(0, 2,false),//top
             get_map(0, 2,false)],//bottom
-        4=>[
+        Blocks::Dirt=>[
             get_map(0, 1,false),//west
             get_map(0, 1,false),//east
             get_map(0, 1,true),//front
             get_map(0, 1,true),//back
             get_map(0, 1,false),//top
             get_map(0, 1,false)],//bottom
-        5=>[
+        Blocks::Stone=>[
             get_map(1, 2,false),//west
             get_map(1, 2,false),//east
             get_map(1, 2,true),//front
             get_map(1, 2,true),//back
             get_map(1, 2,false),//top
             get_map(1, 2,false)],//bottom
-        6=>[
+        Blocks::WormWhole=>[
             get_map(3, 2,false),//west
             get_map(3, 2,false),//east
             get_map(3, 2,true),//front
@@ -164,6 +173,18 @@ fn get_texture_map_by_id(id:u32)->[[[f32;2];4];6]{
             */
     }
 }
+fn id_to_blocks(id:u8)->Blocks{
+    match id{
+       
+        1=>Blocks::Grass,
+        2=>Blocks::Graphite,
+        3=>Blocks::Amethyst,  
+        4=>Blocks::Dirt,
+        5=>Blocks::Stone, 
+        6=>Blocks::WormWhole,
+        _=> Blocks::Air,
+    }
+}
 fn side(id:u8,side:u8,offset:[f32;3], vert:&mut Vec<Vertex>){
     let norm:[f32;3];
     
@@ -172,69 +193,84 @@ fn side(id:u8,side:u8,offset:[f32;3], vert:&mut Vec<Vertex>){
     //let mut face=[[0.0 as f32;3];4];
     let face;
     let texturemap;
-    let order = [0,1,2,0,2,3];
-    
-    let texture_mapping = get_texture_map_by_id(id as u32);
-    match side{
-        0=>{
-            norm = [-1.0,0.0,0.0];
-            texturemap = texture_mapping[0];
-            face = [
-                [(offset[0])*scale,(offset[1]    )*scale,(offset[2]    )*scale],
-                [(offset[0])*scale,(offset[1]-1.0)*scale,(offset[2]    )*scale],
-                [(offset[0])*scale,(offset[1]-1.0)*scale,(offset[2]-1.0)*scale],
-                [(offset[0])*scale,(offset[1]    )*scale,(offset[2]-1.0)*scale]];},
-        1=>{
-            norm = [1.0,0.0,0.0];
-            texturemap = texture_mapping[1];
-            face = [
-                [(offset[0]+1.0)*scale,(offset[1]    )*scale,(offset[2]    )*scale],
-                [(offset[0]+1.0)*scale,(offset[1]-1.0)*scale,(offset[2]    )*scale],
-                [(offset[0]+1.0)*scale,(offset[1]-1.0)*scale,(offset[2]-1.0)*scale],
-                [(offset[0]+1.0)*scale,(offset[1]    )*scale,(offset[2]-1.0)*scale]];},
-        2=>{
-            norm = [0.0,0.0,1.0];
-            texturemap = texture_mapping[2];
-            face = [
-                [(offset[0]    )*scale,(offset[1]    )*scale,(offset[2])*scale],
-                [(offset[0]+1.0)*scale,(offset[1]    )*scale,(offset[2])*scale],
-                [(offset[0]+1.0)*scale,(offset[1]-1.0)*scale,(offset[2])*scale],
-                [(offset[0]    )*scale,(offset[1]-1.0)*scale,(offset[2])*scale]];},
-        3=>{
-            norm = [0.0,0.0,-1.0];
-            texturemap = texture_mapping[3];
-            face = [
-                [(offset[0]    )*scale,(offset[1]    )*scale,(offset[2]-1.0)*scale],
-                [(offset[0]+1.0)*scale,(offset[1]    )*scale,(offset[2]-1.0)*scale],
-                [(offset[0]+1.0)*scale,(offset[1]-1.0)*scale,(offset[2]-1.0)*scale],
-                [(offset[0]    )*scale,(offset[1]-1.0)*scale,(offset[2]-1.0)*scale]];},
-        4=>{
-            //top
-            norm = [0.0,1.0,0.0];
-            texturemap = texture_mapping[4];
-            face = [
-                [(offset[0]    )*scale,(offset[1]    )*scale,(offset[2]    )*scale],
-                [(offset[0]+1.0)*scale,(offset[1]    )*scale,(offset[2]    )*scale],
-                [(offset[0]+1.0)*scale,(offset[1]    )*scale,(offset[2]-1.0)*scale],
-                [(offset[0]    )*scale,(offset[1]    )*scale,(offset[2]-1.0)*scale]];},
-        _=>{
-            texturemap = texture_mapping[5];
-            norm = [0.0,-1.0,0.0];
-            face = [
-                [(offset[0]    )*scale,(offset[1]-1.0)*scale,(offset[2]    )*scale],
-                [(offset[0]+1.0)*scale,(offset[1]-1.0)*scale,(offset[2]    )*scale],
-                [(offset[0]+1.0)*scale,(offset[1]-1.0)*scale,(offset[2]-1.0)*scale],
-                [(offset[0]    )*scale,(offset[1]-1.0)*scale,(offset[2]-1.0)*scale]];},
-    };
-    for i in order{
-        let point = [face[i][0],face[i][1],face[i][2]];
-        let text = texturemap[i];
-        vert.push(Vertex{position: point,normal:norm,texture:text,});
+    //let order = [0,1,2,0,2,3];
+    let mut order = [0,1,2,0,2,3];
+    if side%2 ==0{
+        order = [1,0,2,0,3,2];
     }
 
+    let texture_mapping = get_texture_map_by_id(id_to_blocks(id));
+    
+        match side{
+            0=>{
+                norm = [-1.0,0.0,0.0];
+                texturemap = texture_mapping[0];
+                face = [
+                    [(offset[0])*scale,(offset[1]    )*scale,(offset[2]    )*scale],
+                    [(offset[0])*scale,(offset[1]-1.0)*scale,(offset[2]    )*scale],
+                    [(offset[0])*scale,(offset[1]-1.0)*scale,(offset[2]-1.0)*scale],
+                    [(offset[0])*scale,(offset[1]    )*scale,(offset[2]-1.0)*scale]];},
+            1=>{
+                norm = [1.0,0.0,0.0];
+                texturemap = texture_mapping[1];
+                face = [
+                    [(offset[0]+1.0)*scale,(offset[1]    )*scale,(offset[2]    )*scale],
+                    [(offset[0]+1.0)*scale,(offset[1]-1.0)*scale,(offset[2]    )*scale],
+                    [(offset[0]+1.0)*scale,(offset[1]-1.0)*scale,(offset[2]-1.0)*scale],
+                    [(offset[0]+1.0)*scale,(offset[1]    )*scale,(offset[2]-1.0)*scale]];},
+            2=>{
+                norm = [0.0,0.0,1.0];
+                texturemap = texture_mapping[2];
+                face = [
+                    [(offset[0]    )*scale,(offset[1]    )*scale,(offset[2])*scale],
+                    [(offset[0]+1.0)*scale,(offset[1]    )*scale,(offset[2])*scale],
+                    [(offset[0]+1.0)*scale,(offset[1]-1.0)*scale,(offset[2])*scale],
+                    [(offset[0]    )*scale,(offset[1]-1.0)*scale,(offset[2])*scale]];},
+            3=>{
+                norm = [0.0,0.0,-1.0];
+                texturemap = texture_mapping[3];
+                face = [
+                    [(offset[0]    )*scale,(offset[1]    )*scale,(offset[2]-1.0)*scale],
+                    [(offset[0]+1.0)*scale,(offset[1]    )*scale,(offset[2]-1.0)*scale],
+                    [(offset[0]+1.0)*scale,(offset[1]-1.0)*scale,(offset[2]-1.0)*scale],
+                    [(offset[0]    )*scale,(offset[1]-1.0)*scale,(offset[2]-1.0)*scale]];},
+            4=>{
+                //bottom
+                texturemap = texture_mapping[5];
+                norm = [0.0,-1.0,0.0];
+                face = [
+                    [(offset[0]    )*scale,(offset[1]-1.0)*scale,(offset[2]    )*scale],
+                    [(offset[0]+1.0)*scale,(offset[1]-1.0)*scale,(offset[2]    )*scale],
+                    [(offset[0]+1.0)*scale,(offset[1]-1.0)*scale,(offset[2]-1.0)*scale],
+                    [(offset[0]    )*scale,(offset[1]-1.0)*scale,(offset[2]-1.0)*scale]];},
+            _=>{
+                //top
+                norm = [0.0,1.0,0.0];
+                texturemap = texture_mapping[4];
+                face = [
+                    [(offset[0]    )*scale,(offset[1]    )*scale,(offset[2]    )*scale],
+                    [(offset[0]+1.0)*scale,(offset[1]    )*scale,(offset[2]    )*scale],
+                    [(offset[0]+1.0)*scale,(offset[1]    )*scale,(offset[2]-1.0)*scale],
+                    [(offset[0]    )*scale,(offset[1]    )*scale,(offset[2]-1.0)*scale]];},
+            
+        };
+        
+        for i in order{
+            let point = [face[i][0],face[i][1],face[i][2]];
+            let text = texturemap[i];
+            vert.push(Vertex{position: point,normal:norm,texture:text,});
+        }
+    
+        for i in order{
+            let point = [face[i][0],face[i][1],face[i][2]];
+            let text = texturemap[i];
+            vert.push(Vertex{position: point,normal:norm,texture:text,});
+        }
+        
+    
 }
 fn worm<const Size : usize >(chunk: &mut [[[u8;Size];Size];Size],pos: &mut [i32;2]){
-    let mut CHUNKSIZE:i32 = Size as i32;
+    let CHUNKSIZE:i32 = Size as i32;
     let mut ra =rand::thread_rng();
     let height = ra.gen_range(1..5);
     for y in height..height+ra.gen_range(1..20){
@@ -259,22 +295,23 @@ fn worm<const Size : usize >(chunk: &mut [[[u8;Size];Size];Size],pos: &mut [i32;
     }
     
 }
-pub fn load_voxel_chunk(display: &Display)->VertexBufferAny{
-    implement_vertex!(Vertex, position, normal, texture);
-    let mut vertex_data: Vec<Vertex> = Vec::new();
-    const CHUNKSIZE:usize  = 96;
+pub fn create_voxel_chunk()-> [[[u8;32];32];32]{
+    const CHUNKSIZE:usize  = 32;
+    
     print!("build chunk");
+
     let mut chunk = [[[0 as u8 ;CHUNKSIZE];CHUNKSIZE];CHUNKSIZE];
     
    let mut ra =rand::thread_rng();
-    for _i in 0..100{
+    /*for _i in 0..100{
         chunk[ra.gen_range(0..CHUNKSIZE)][ra.gen_range(0..CHUNKSIZE)][ra.gen_range(0..CHUNKSIZE)] =ra.gen_range(1..3);
-    }
+    }*/
     let perlin = Perlin::new(100);
     let smoothness = 0.035;
     let slope = 7.5;
     let baseheight = 2.0;
     //world
+    
     for x in 0..CHUNKSIZE{
         for z in 0..CHUNKSIZE{
             let height = ((perlin.get([x as f64 * smoothness,z as f64* smoothness,1.0])+baseheight)*slope)as usize;
@@ -301,75 +338,66 @@ pub fn load_voxel_chunk(display: &Display)->VertexBufferAny{
     for _i in 0..ra.gen_range(5..20){
         let mut pos = [ra.gen_range(0..CHUNKSIZE as i32),ra.gen_range(0..CHUNKSIZE as i32)];
         worm(&mut chunk,&mut pos);
-        
-
     }
     
-    //codes 0 = west, 1 = east, 2 = front, 3 = back, 4 = top, 5 = bottom
-    for x in 0..chunk.len(){
-        for y in 0..chunk[0].len(){
-            for z in 0..chunk[0][0].len(){
-                if chunk[x][y][z] > 0{
-                    if x as i64 -1 >= 0{
-                        if chunk[x-1][y][z] == 0{
-                            //west side
-                            side(chunk[x][y][z],0,[x as f32,y as f32,z as f32],&mut vertex_data);
-                        }
-                    }else{
-                        //fail
-                        side(chunk[x][y][z],0,[x as f32,y as f32,z as f32],&mut vertex_data);
-                    }
-                    if x as i64 +1 <= chunk.len() as i64-1{
-                        if chunk[x+1][y][z] == 0{
-                            side(chunk[x][y][z],1,[x as f32,y as f32,z as f32],&mut vertex_data);
-                        }
-                    }else{
-                        //fail
+    return chunk;
+}
+pub fn load_voxel_chunk<const Size:usize>(display: &Display,chunk: &[[[u8;Size];Size];Size],player_direction:u8)->VertexBufferAny{
+    implement_vertex!(Vertex, position, normal, texture);
+    let mut vertex_data: Vec<Vertex> = Vec::new();
+    //Algo Only check East, South and the top if its air check the next and set the side to the next type.
+    for x in 0..chunk.len()-1{ //-1 saves checking checking for edge case
+        for y in 0..chunk[0].len()-1{
+            for z in 0..chunk[0][0].len()-1{
+                if chunk[x][y][z] != 0{ //if not air
+                    if chunk[x+1][y][z] == 0{//if east is air generate face of this type
                         side(chunk[x][y][z],1,[x as f32,y as f32,z as f32],&mut vertex_data);
                     }
-                    //top bottom
-                    if y as i64 +1 <= chunk[0].len() as i64-1{
-                        if chunk[x][y+1][z] == 0{
-                            side(chunk[x][y][z],4,[x as f32,y as f32,z as f32],&mut vertex_data);
-                        }
-                    }else{
-                        side(chunk[x][y][z],4,[x as f32,y as f32,z as f32],&mut vertex_data);
-                    }
-                    if y as i64 -1 >= 0{
-                        if chunk[x][y-1][z] == 0{
-                            side(chunk[x][y][z],5,[x as f32,y as f32,z as f32],&mut vertex_data);
-                        }
-                    }else{
-                        side(chunk[x][y][z],5,[x as f32,y as f32,z as f32],&mut vertex_data);
-                    }
-                    //front back
-                    if z as i64 +1 <= chunk[0][0].len() as i64-1{
-                        if chunk[x][y][z+1] == 0{
-                            //west side
-                            side(chunk[x][y][z],2,[x as f32,y as f32,z as f32],&mut vertex_data);
-                        }
-                    }else{
-                        //fail
+                    if chunk[x][y][z+1] == 0{//south
                         side(chunk[x][y][z],2,[x as f32,y as f32,z as f32],&mut vertex_data);
                     }
-                    if z as i64 -1 >= 0{
-                        if chunk[x][y][z-1] == 0{
-                            //west side
-                            side(chunk[x][y][z],3,[x as f32,y as f32,z as f32],&mut vertex_data);
-                        }
-                    }else{
-                        //fail
-                        side(chunk[x][y][z],3,[x as f32,y as f32,z as f32],&mut vertex_data);
+                    if chunk[x][y+1][z] == 0{//top
+                        side(chunk[x][y][z],5,[x as f32,y as f32,z as f32],&mut vertex_data);
                     }
-
+                } else {//if air
+                    if chunk[x+1][y][z] != 0{//east
+                        side(chunk[x+1][y][z],0,[x as f32+1.0,y as f32,z as f32],&mut vertex_data);
+                    }
+                    if chunk[x][y][z+1] != 0{//south
+                        side(chunk[x][y][z+1],3,[x as f32,y as f32,z as f32+1.0],&mut vertex_data);
+                    }
+                    if chunk[x][y+1][z] !=0{//bottom of above
+                        side(chunk[x][y+1][z],4,[x as f32,y as f32 +1.0,z as f32],&mut vertex_data);
+                    }
                 }
             }
         }
     }
+    //east face of chunk
+    for z in 0..chunk.len(){
+        for y in 0..chunk[0].len()-1{
+            if chunk[chunk[0][0].len()-1][y][z] != 0{ //if not air
+                side(chunk[0][y][z],1,[(chunk[0][0].len()) as f32-1.0,y as f32,z as f32],&mut vertex_data);
+                if chunk[chunk[0][0].len()-1][y+1][z] ==0{
+                    side(chunk[0][y][z],5,[(chunk[0][0].len()) as f32-1.0,y as f32,z as f32],&mut vertex_data);
+                }
+            }
+            if chunk[0][y][z] != 0{ //if not air
+                side(chunk[0][y][z],0,[0.0,y as f32,z as f32],&mut vertex_data);
+            }
+            if chunk[z][y][chunk[0][0].len()-1] != 0{ //if not air
+                side(chunk[z][y][0],2,[z as f32,y as f32,(chunk[0][0].len()) as f32-1.0],&mut vertex_data);
+            }
+            if chunk[z][y][0] != 0{ //if not air
+                side(chunk[z][y][0],3,[z as f32,y as f32,0.0],&mut vertex_data);
+            }
+        }
+    }
 
-    glium::vertex::VertexBuffer::new(display, &vertex_data).unwrap().into()
-
+    
+    return glium::vertex::VertexBuffer::new(display, &vertex_data).unwrap().into();
 }
+
 /// Returns a vertex buffer that should be rendered as `TrianglesList`.
 pub fn load_wavefront(display: &Display, data: &[u8]) -> VertexBufferAny {
     #[derive(Copy, Clone)]
