@@ -306,18 +306,15 @@ fn worm(chunk: &mut Chunk,pos: &mut [i32;2]){
     }
     
 }
-pub fn create_voxel_chunk(chunk_x:usize,chunk_z:usize)-> Chunk{
+pub fn create_voxel_chunk(chunk_x:usize,chunk_z:usize,seed:u32)-> Chunk{
     const CHUNKSIZE:usize  = 32;
-    
-
-
     let mut chunk = Chunk::new();
     chunk.pos = [chunk_x,chunk_z];
     let mut ra =rand::thread_rng();
     /*for _i in 0..100{
         chunk[ra.gen_range(0..CHUNKSIZE)][ra.gen_range(0..CHUNKSIZE)][ra.gen_range(0..CHUNKSIZE)] =ra.gen_range(1..3);
     }*/
-    let perlin = Perlin::new(100);
+    let perlin = Perlin::new(seed);
     let smoothness = 0.035;
     let slope = 7.5;
     let baseheight = 3.0;

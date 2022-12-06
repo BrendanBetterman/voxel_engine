@@ -42,6 +42,26 @@ impl CameraState {
             moving_backward: false,
         }
     }
+    
+    pub fn clone(&self) ->CameraState{
+        CameraState {
+            aspect_ratio: 1920.0 / 1080.0,//768.0
+            position: self.position,
+            direction: self.direction,
+            angle: self.angle,
+            mouse_start_position: self.mouse_start_position,
+            delta_time: 0.0,
+            rotate_left: false,
+            rotate_right: false,
+            clicked: false,
+            moving_up: false,
+            moving_left: false,
+            moving_down: false,
+            moving_right: false,
+            moving_forward: false,
+            moving_backward: false,
+        }
+    }
     pub fn set_delta_time(&mut self,time:f32){
         self.delta_time = time;
     }
@@ -131,6 +151,7 @@ impl CameraState {
             [s_norm.1, u.1, f.1, 0.0],
             [s_norm.2, u.2, f.2, 0.0],
             [p.0, p.1,  p.2, 1.0],
+            
         ]
     }
 

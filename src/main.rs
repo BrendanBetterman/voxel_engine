@@ -8,6 +8,7 @@ use std::time::Instant;
 mod support;
 mod render;
 
+
 fn main() {
     // building the display, ie. the main object
     let event_loop = glutin::event_loop::EventLoop::new();
@@ -17,6 +18,7 @@ fn main() {
     let mut now = Instant::now();
     let mut frame = 0;
     let mut delta_time = Instant::now();
+    
     // the main loop
     support::start_loop(event_loop, move |events| {
         //now = Instant::now();
@@ -65,6 +67,7 @@ fn main() {
             frame =0;
             renderer.update_mesh(0);
         }*/
+        
         action
         
     });

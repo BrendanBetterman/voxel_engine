@@ -7,6 +7,7 @@ use glium::glutin::dpi::Position;
 use glium::{glutin, Surface,Display,index::*};
 use glium::vertex::VertexBufferAny;
 use glutin::{event_loop::EventLoop};
+use rand::Rng;
 use std::io::Cursor;
 use crate::support::create_voxel_chunk;
 
@@ -40,9 +41,10 @@ impl Renderer{
         
         let mut chunk = Vec::new();
         let mut vex_buff = Vec::new();
-        
+        let mut ra =rand::thread_rng();
+        let seed = ra.gen_range(0..100000);
         for i in 0..8{
-            chunk.push(create_voxel_chunk((32*i)as usize,1));
+            chunk.push(create_voxel_chunk((32*i)as usize,1,seed));
             vex_buff.push(support::load_voxel_chunk(&display,&chunk[i].chunk,32.0* i as f32,1.0));
         }
         //let mut chunk = create_voxel_chunk(0.0,0.0);
@@ -213,19 +215,18 @@ impl Renderer{
         //173,225,229 0.68,0.88,0.9
         //252 231 98 0.988,0.906,0.384
         if camera.clicked{
+            //println!("x{},y{},z{}",(camera.position.0 * 20.5)as u32,(camera.position.1*20.5)as u32,(camera.position.2 * 20.5)as u32);
+            //self.chunk[0].chunk[(camera.position.0 * 20.5) as u32 as usize][(camera.position.1 *20.5) as u32 as usize][(camera.position.2 * 20.5) as u32 as usize] = 1;
+            let pos = ((camera.position.0 * 20.3718-0.5) as u32,(camera.position.1 * 20.3718-0.5) as u32,(camera.position.2 * 20.3718-0.5) as u32);
+            println!("{}", camera.position.0 * 20.38-0.5);
+            self.chunk[(pos.0 /32) as usize].chunk[(pos.0%32) as usize][(pos.1%32) as usize][(pos.2%32) as usize] = 1;
+            self.vertex_buffer[(pos.0 /32) as usize] =support::load_voxel_chunk(&self.display,&self.chunk[(pos.0 /32) as usize].chunk,(pos.0/32) as f32 * 32.0,1.0);
             
-            self.chunk[0].chunk[camera.position.0 as usize][camera.position.1 as usize][camera.position.2 as usize] = 1;
-            self.vertex_buffer[0] =support::load_voxel_chunk(&self.display,&self.chunk[0].chunk,0.0,1.0);
         }
         target.clear_color_and_depth((0.68,0.88,0.9, 0.0), 1.0);
         for i in 0..self.vertex_buffer.len(){
             //print!("{}",(camera.position.0/32.0)as u8);
-            if (self.chunk[i].pos[0] as f32) < (camera.position.0){
-                print!("moved chunk");
-                self.chunk[i] = create_voxel_chunk((32.0*(camera.position.0 /32.0))as usize+7,1);
-                
-                
-            } 
+
             target.draw(&self.vertex_buffer[i],
             &glium::index::NoIndices(glium::index::PrimitiveType::TrianglesList),
             &program, &uniforms, &params).unwrap();
